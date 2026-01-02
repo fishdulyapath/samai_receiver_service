@@ -1,0 +1,76 @@
+CREATE TABLE public.cart_user_order_bill
+(
+  roworder serial,
+  billing_no character varying(255) NOT NULL DEFAULT ''::character varying,
+  doc_ref character varying(255) DEFAULT ''::character varying,
+  user_code character varying(255) DEFAULT ''::character varying,
+  cust_code character varying(255) DEFAULT ''::character varying,
+  addr_name character varying(255) DEFAULT ''::character varying,
+  addr character varying(255) DEFAULT ''::character varying,
+  wh_code character varying(255) DEFAULT ''::character varying,
+  sum_amount character varying(255) DEFAULT ''::character varying,
+  send_date date,
+  create_date_time timestamp without time zone NOT NULL DEFAULT ('now'::text)::timestamp without time zone,
+  CONSTRAINT cart_user_order_bill_pk_primary PRIMARY KEY (billing_no)
+);
+
+CREATE TABLE public.cart_user_order_bill_detail
+(
+  roworder serial,
+  billing_no character varying(255) DEFAULT ''::character varying,
+  doc_ref character varying(255) DEFAULT ''::character varying,
+  user_code character varying(255) DEFAULT ''::character varying,
+  cust_code character varying(255) DEFAULT ''::character varying,
+  item_code character varying(255) DEFAULT ''::character varying,
+  unit_code character varying(255) DEFAULT ''::character varying,
+  qty numeric DEFAULT 0,
+  price numeric DEFAULT 0,
+  amount numeric DEFAULT 0,
+  create_date_time timestamp without time zone NOT NULL DEFAULT ('now'::text)::timestamp without time zone,
+  remark character varying(255),
+  CONSTRAINT cart_user_order_bill_detail_pk_primary PRIMARY KEY (roworder)
+);
+
+CREATE TABLE public.cart_user_order_temp
+(
+  roworder serial,
+  user_code character varying(255) DEFAULT ''::character varying,
+  cust_code character varying(255) DEFAULT ''::character varying,
+  addr_name character varying(255) DEFAULT ''::character varying,
+  addr character varying(255) DEFAULT ''::character varying,
+  wh_code character varying(255) DEFAULT ''::character varying,
+  send_date date,
+  create_date_time timestamp without time zone NOT NULL DEFAULT ('now'::text)::timestamp without time zone,
+  telephone character varying(255),
+  CONSTRAINT cart_user_order_temp_pk_primary PRIMARY KEY (roworder)
+);
+
+
+CREATE TABLE public.cart_user_order_temp_detail
+(
+  roworder serial,
+  user_code character varying(255) DEFAULT ''::character varying,
+  cust_code character varying(255) DEFAULT ''::character varying,
+  item_code character varying(255) DEFAULT ''::character varying,
+  unit_code character varying(255) DEFAULT ''::character varying,
+  qty numeric DEFAULT 0,
+  create_date_time timestamp without time zone NOT NULL DEFAULT ('now'::text)::timestamp without time zone,
+  remark character varying(255),
+  discount_word character varying(255),
+  CONSTRAINT cart_user_order_temp_detail_pk_primary PRIMARY KEY (roworder)
+);
+
+
+ALTER TABLE public.ic_trans ADD COLUMN address_name character varying(255);
+ALTER TABLE public.ic_trans ADD COLUMN address text;
+ALTER TABLE public.ar_customer ADD COLUMN user_code character varying(255);
+ALTER TABLE public.ar_customer ADD COLUMN password character varying(255);
+ALTER TABLE public.ar_customer ADD COLUMN question_choose character varying;
+ALTER TABLE public.ar_customer ADD COLUMN question_answer character varying(255);
+
+ALTER TABLE public.cart_user_order_temp ADD COLUMN inquiry_type smallint;
+ALTER TABLE public.cart_user_order_temp ALTER COLUMN inquiry_type SET DEFAULT 0;
+ALTER TABLE public.cart_user_order_temp ADD COLUMN vat_type smallint;
+ALTER TABLE public.cart_user_order_temp ALTER COLUMN vat_type SET DEFAULT 0;
+ALTER TABLE public.cart_user_order_temp ADD COLUMN logistic_area character varying(255);
+ALTER TABLE public.cart_user_order_temp ADD COLUMN latitude character varying(255);
