@@ -1092,7 +1092,7 @@ public class SamaiReceiverServiceAPI {
                     + "from ic_trans ic "
                     + "left join ap_supplier ar on ar.code = ic.cust_code "
                     + "left join erp_user erp on erp.code = ic.sale_code "
-                    + "where trans_flag in (6,12) and last_status = 0 "
+                    + "where trans_flag in (6) and last_status = 0 "
                     + "AND NOT EXISTS (select doc_no from krc_trans krc where krc.doc_ref = ic.doc_no) "
                     + _where + _whereText;
 
@@ -1114,7 +1114,7 @@ public class SamaiReceiverServiceAPI {
                     + "from ic_trans ic "
                     + "left join ap_supplier ar on ar.code = ic.cust_code "
                     + "left join erp_user erp on erp.code = ic.sale_code "
-                    + " where trans_flag in (6,12) and last_status = 0 "
+                    + " where trans_flag in (6) and last_status = 0 "
                     + " AND NOT EXISTS (select doc_no from krc_trans krc where krc.doc_ref = ic.doc_no) "
                     + _where + _whereText
                     + " order by ic.create_datetime DESC "
@@ -1362,7 +1362,7 @@ public class SamaiReceiverServiceAPI {
                     + "coalesce(erp_approve.name_1,'') as user_approve_name, "
                     + "coalesce(erp_close.name_1,'') as user_close_name, "
                     + "coalesce((select count(image_id) from sml_doc_images where image_id = ic.doc_ref),0) as image_count, "
-                    + "coalesce((select sum(qty) from ic_trans_detail icx where icx.doc_no = ic.doc_ref and trans_flag in (6,12)),0) as so_qty, "
+                    + "coalesce((select sum(qty) from ic_trans_detail icx where icx.doc_no = ic.doc_ref and trans_flag in (6)),0) as so_qty, "
                     + "coalesce((select sum(qty) from krc_trans_detail krx where krx.doc_no = ic.doc_no),0) as receive_qty "
                     + " from krc_trans ic "
                     + " left join ap_supplier ar on ar.code = ic.cust_code "
