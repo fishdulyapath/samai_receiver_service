@@ -175,7 +175,7 @@ public class SamaiReceiverServiceAPI {
             }
 
             _whereFinal = _where;
-            String __strQUERY1 = "select split_part(ic_code, '-', 1) AS ic_code,barcode,description,unit_code from ic_inventory_barcode where 1=1 " + _whereFinal + " limit 1500";
+            String __strQUERY1 = "select split_part(ic_code, '-', 1) AS item_ref_code,ic_code,barcode,description,unit_code from ic_inventory_barcode where 1=1 " + _whereFinal + " limit 1500";
 
             Statement __stmt1 = __conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ResultSet __rsHead = __stmt1.executeQuery(__strQUERY1);
@@ -185,6 +185,7 @@ public class SamaiReceiverServiceAPI {
                 JSONObject obj = new JSONObject();
 
                 obj.put("barcode", __rsHead.getString("barcode"));
+                obj.put("item_ref_code", __rsHead.getString("item_ref_code"));
                 obj.put("item_code", __rsHead.getString("ic_code"));
                 obj.put("item_name", __rsHead.getString("description"));
                 obj.put("unit_code", __rsHead.getString("unit_code"));
@@ -220,7 +221,7 @@ public class SamaiReceiverServiceAPI {
             String _whereFinal = "";
 
             _whereFinal = _where;
-            String __strQUERY1 = "select split_part(ic_code, '-', 1) AS ic_code,barcode,description,unit_code from ic_inventory_barcode where 1=1 and barcode='" + strSearch + "' limit 1500";
+            String __strQUERY1 = "select split_part(ic_code, '-', 1) AS item_ref_code,ic_code,barcode,description,unit_code from ic_inventory_barcode where 1=1 and barcode='" + strSearch + "' limit 1500";
 
             Statement __stmt1 = __conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ResultSet __rsHead = __stmt1.executeQuery(__strQUERY1);
@@ -230,6 +231,7 @@ public class SamaiReceiverServiceAPI {
                 JSONObject obj = new JSONObject();
 
                 obj.put("barcode", __rsHead.getString("barcode"));
+                obj.put("item_ref_code", __rsHead.getString("item_ref_code"));
                 obj.put("item_code", __rsHead.getString("ic_code"));
                 obj.put("item_name", __rsHead.getString("description"));
                 obj.put("unit_code", __rsHead.getString("unit_code"));
@@ -266,11 +268,11 @@ public class SamaiReceiverServiceAPI {
             JSONArray jsarrDetailSo = new JSONArray();
             JSONArray jsarrDetail = new JSONArray();
             String query = "SELECT\n"
-                    + "    split_part(td.barcode, '-', 1) AS barcode,\n"
-                    + "    split_part(td.item_code, '-', 1) AS item_code,\n"
+                    + "    split_part(td.item_code, '-', 1) AS item_ref_code,\n"
+                    + "    td.item_code AS item_code,\n"
                     + "    COALESCE(i.name_1, '') AS item_name,\n"
                     + "    td.unit_code, "
-                    + "    SUM(td.qty) AS qty "
+                    + "    td.qty AS qty "
                     + " FROM ic_trans_detail td "
                     + " LEFT JOIN ic_inventory i "
                     + "  ON i.code = td.item_code  "
@@ -279,17 +281,14 @@ public class SamaiReceiverServiceAPI {
                     + "    FROM krc_trans\n"
                     + "    WHERE doc_no = '" + __doc_no + "' "
                     + " )\n"
-                    + " GROUP BY\n"
-                    + "    split_part(td.barcode, '-', 1),\n"
-                    + "    split_part(td.item_code, '-', 1),\n"
-                    + "    i.name_1,\n"
-                    + "    td.unit_code;";
+                    + " order by line_number asc ;";
 //            System.out.println("query " + query);
             Statement __stmt = __conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ResultSet __rsHead = __stmt.executeQuery(query);
             while (__rsHead.next()) {
                 JSONObject obj = new JSONObject();
-                obj.put("barcode", __rsHead.getString("barcode"));
+                obj.put("barcode", "");
+                obj.put("item_ref_code", __rsHead.getString("item_ref_code"));
                 obj.put("item_code", __rsHead.getString("item_code"));
                 obj.put("item_name", __rsHead.getString("item_name"));
 
@@ -951,7 +950,7 @@ public class SamaiReceiverServiceAPI {
 
             String __strQUERYGroup = "select price_type,sale_type,coalesce(ap.name_1,'') as cust_name,cust_group_1,cust_group_2,from_qty,to_qty,unit_code,from_date,to_date,sale_price1,sale_price2,coalesce(ip.creator_code,'') as creator_code,coalesce(TO_CHAR(ip.create_date_time_now, 'YYYY-MM-DD'),'') as doc_date,coalesce(TO_CHAR(ip.create_date_time_now, 'HH24:MI'),'') AS doc_time,ip.status \n"
                     + "from ic_inventory_price ip \n"
-                    + "left join ar_customer ap on ap.code = ip.cust_code\n"
+                    + "left join ap_supplier ap on ap.code = ip.cust_code\n"
                     + "  where ip.price_mode = 1 and ip.to_date > now() and ip.ic_code = '" + strIcCode + "' order by ip.price_type asc,ip.unit_code,ip.create_date_time_now desc ";
             Statement __stmtGroup = __conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ResultSet __rsGroup = __stmtGroup.executeQuery(__strQUERYGroup);
@@ -980,7 +979,7 @@ public class SamaiReceiverServiceAPI {
 
             String __strQUERYGroupSub = "select price_type,sale_type,coalesce(ap.name_1,'') as cust_name,cust_group_1,cust_group_2,from_qty,to_qty,unit_code,from_date,to_date,sale_price1,sale_price2,coalesce(ip.creator_code,'') as creator_code,coalesce(TO_CHAR(ip.create_date_time_now, 'YYYY-MM-DD'),'') as doc_date,coalesce(TO_CHAR(ip.create_date_time_now, 'HH24:MI'),'') AS doc_time,ip.status "
                     + "from ic_inventory_price ip "
-                    + "left join ar_customer ap on ap.code = ip.cust_code "
+                    + "left join ap_supplier ap on ap.code = ip.cust_code "
                     + "  where ip.price_mode = 0 and ip.to_date > now() and ip.ic_code = '" + strIcCode + "' order by ip.price_type asc,ip.unit_code,ip.create_date_time_now desc";
             Statement __stmtGroupSub = __conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ResultSet __rsGroupSub = __stmtGroupSub.executeQuery(__strQUERYGroupSub);
@@ -1091,7 +1090,7 @@ public class SamaiReceiverServiceAPI {
             // นับ total ก่อนไว้ใช้สำหรับ pagination (optional แต่แนะนำให้มี)
             String __strCount = "select count(*) as total_count "
                     + "from ic_trans ic "
-                    + "left join ar_customer ar on ar.code = ic.cust_code "
+                    + "left join ap_supplier ar on ar.code = ic.cust_code "
                     + "left join erp_user erp on erp.code = ic.sale_code "
                     + "where trans_flag in (6,12) and last_status = 0 "
                     + "AND NOT EXISTS (select doc_no from krc_trans krc where krc.doc_ref = ic.doc_no) "
@@ -1113,7 +1112,7 @@ public class SamaiReceiverServiceAPI {
                     + "coalesce(ar.name_1,'') as cust_name, "
                     + "coalesce(erp.name_1,'') as sale_name "
                     + "from ic_trans ic "
-                    + "left join ar_customer ar on ar.code = ic.cust_code "
+                    + "left join ap_supplier ar on ar.code = ic.cust_code "
                     + "left join erp_user erp on erp.code = ic.sale_code "
                     + " where trans_flag in (6,12) and last_status = 0 "
                     + " AND NOT EXISTS (select doc_no from krc_trans krc where krc.doc_ref = ic.doc_no) "
@@ -1336,7 +1335,7 @@ public class SamaiReceiverServiceAPI {
             // นับ total ก่อนไว้ใช้สำหรับ pagination (optional แต่แนะนำให้มี)
             String __strCount = "select count(*) as total_count "
                     + " from krc_trans ic"
-                    + " left join ar_customer ar on ar.code = ic.cust_code "
+                    + " left join ap_supplier ar on ar.code = ic.cust_code "
                     + " left join erp_user erp on erp.code = ic.sale_code "
                     + " where ic.status = " + strStatus
                     + " "
@@ -1366,7 +1365,7 @@ public class SamaiReceiverServiceAPI {
                     + "coalesce((select sum(qty) from ic_trans_detail icx where icx.doc_no = ic.doc_ref and trans_flag in (6,12)),0) as so_qty, "
                     + "coalesce((select sum(qty) from krc_trans_detail krx where krx.doc_no = ic.doc_no),0) as receive_qty "
                     + " from krc_trans ic "
-                    + " left join ar_customer ar on ar.code = ic.cust_code "
+                    + " left join ap_supplier ar on ar.code = ic.cust_code "
                     + " left join erp_user erp on erp.code = ic.sale_code "
                     + " left join erp_user erp_approve on erp.code = ic.user_approve "
                     + " left join erp_user erp_close on erp.code = ic.user_close "
@@ -1474,7 +1473,7 @@ public class SamaiReceiverServiceAPI {
                         + "    so_qty, "
                         + "    remark, "
                         + "    line_number) "
-                        + "values ('" + docno + "','" + objJSDataItem.getString("barcode") + "','','" + objJSDataItem.getString("item_code") + "','" + objJSDataItem.getString("unit_code") + "','" + objJSDataItem.getString("qty") + "','0',''," + i + ");");
+                        + "values ('" + docno + "','','','" + objJSDataItem.getString("item_code") + "','" + objJSDataItem.getString("unit_code") + "','" + objJSDataItem.getString("qty") + "','0',''," + i + ");");
 
             }
             Statement __stmtDetail;
